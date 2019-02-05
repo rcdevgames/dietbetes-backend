@@ -43,7 +43,7 @@ class AuthController extends Controller
 
 
 		try {
-            $user = User::where('email', $request->useremail)->orWhere('username', $request->useremail)->first();
+            $user = User::where('email', $request->useremail)->first();
             if(!$user) {
                 return response()->json([
                     'status' => 404,
@@ -130,14 +130,13 @@ class AuthController extends Controller
 
     public function register(Request $request)
     {
-        $exactDuplicate = User::where('email', $request->email)->orWhere('username', $request->username)->where('status', User::USER_ACTIVE)->whereRaw(\DB::raw('created_at = NOW()'))->first();
+        $exactDuplicate = User::where('email', $request->email)->where('status', User::USER_ACTIVE)->whereRaw(\DB::raw('created_at = NOW()'))->first();
 
         if (!$exactDuplicate) {
             $validator = Validator::make($request->all(), [
                 'full_name' => 'required',
                 'call_name' => 'required',
                 'email' => 'required|email|unique:users,email',
-                'username' => 'required|min:5|unique:users,username',
                 'password' => 'required|min:8|confirmed',
                 'password_confirmation' => 'required|min:8',
                 'google_token' => 'nullable',
@@ -193,7 +192,6 @@ class AuthController extends Controller
             $user = new User();
             $user->fill($request->only([
                 'email',
-                'username',
                 'google_token',
                 'onesignal_token'
             ]));
