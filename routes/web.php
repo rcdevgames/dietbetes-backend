@@ -11,6 +11,18 @@
 |
 */
 
-Route::get('/', function () {
-    return view('welcome');
-});
+// Route::get('/', function () {
+//     return view('welcome');
+// });
+// Route::get('/test', function()
+// {
+// 	$beautymail = app()->make(Snowfire\Beautymail\Beautymail::class);
+//     $beautymail->send('emails.welcome', [], function($message)
+//     {
+//         $message
+// 			->from('noreply@dietbetes.com')
+// 			->to('rcdev.games@gmail.com', 'John Smith')
+// 			->subject('Welcome!');
+//     });
+
+// });

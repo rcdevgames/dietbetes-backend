@@ -168,6 +168,7 @@ return [
         'Braunson\FatSecret\FatSecretServiceProvider',
         Intervention\Image\ImageServiceProvider::class,
         'Tymon\JWTAuth\Providers\JWTAuthServiceProvider',
+        Snowfire\Beautymail\BeautymailServiceProvider::class,
 
         /*
          * Application Service Providers...

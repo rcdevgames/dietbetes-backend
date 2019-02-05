@@ -17,32 +17,38 @@ Route::group(['prefix' => 'v1', 'middleware' => ['requiredParameterJson']], func
 	Route::group(['prefix' => 'auth'], function () {
 		Route::post('/login', 'Api\AuthController@login');
 		Route::post('/register', 'Api\AuthController@register');
-		Route::post('/forgot', 'Api\AuthController@forgot_password');
+		Route::post('/forgot-password', 'Api\AuthController@forgotPassword');
 		Route::post('/login-google', 'Api\AuthController@google_login');
 	});
 
 	Route::group(['middleware' => ['jwt.auth']], function () {
 		// Route::group(['prefix' => 'auth'], function () {});
-		Route::group(['prefix' => 'user'], function () {
-			Route::get('/detail', 'Api\UserController@detail';
-			Route::put('/update', 'Api\UserController@update';
-			Route::post('/update-avatar', 'Api\UserController@updateAvatar';
-		});
-		Route::group(['prefix' => 'glucose'], function () {
-			Route::get('/now', 'Api\GlucosaController@index';
-			Route::post('/add', 'Api\GlucosaController@insert';
-			Route::post('/history', 'Api\GlucosaController@history';
-		});
-		Route::group(['prefix' => 'food'], function () {
-			Route::get('/category', 'Api\FoodController@category');
-			Route::get('/receipt', 'Api\FoodController@receipt');
-			Route::get('/receipt-detail', 'Api\FoodController@detailReceipt');
-		});
-		Route::group(['prefix' => 'journal'], function () {
-			Route::get('/list', 'Api\FoodController@index');
-			Route::post('/add', 'Api\FoodController@insert');
-			Route::get('/criteria', 'Api\FoodController@criteria');
-			Route::get('/calendar', 'Api\FoodController@calendar');
-		});
+        Route::group(['prefix' => 'user'], function () {
+            Route::get('/calorie', 'Api\UserController@calorie');
+            Route::get('/detail', 'Api\UserController@detail');
+            Route::put('/update', 'Api\UserController@update');
+            Route::post('/update-avatar', 'Api\UserController@updateAvatar');
+            Route::post('/update-password', 'Api\UserController@updatePassword');
+        });
+        Route::group(['prefix' => 'glucose'], function () {
+            Route::get('/now', 'Api\GlucoseController@index');
+            Route::post('/add', 'Api\GlucoseController@insert');
+            Route::get('/history', 'Api\GlucoseController@history');
+        });
+        Route::group(['prefix' => 'food'], function () {
+            Route::get('/category', 'Api\FoodController@category');
+            Route::get('/receipt', 'Api\FoodController@receipt');
+            Route::get('/receipt-detail', 'Api\FoodController@detailReceipt');
+        });
+        Route::group(['prefix' => 'journal'], function () {
+            Route::get('/list', 'Api\JournalController@index');
+            Route::post('/add', 'Api\JournalController@insert');
+            Route::get('/criteria', 'Api\JournalController@criteria');
+            Route::get('/calendar', 'Api\JournalController@calendar');
+        });
+        Route::group(['prefix' => 'fatsecret'], function () {
+            Route::get('/{id}', 'Api\JournalController@fatsecretDetail');
+            Route::post('/search', 'Api\JournalController@fatsecret');
+        });
 	});
 });
