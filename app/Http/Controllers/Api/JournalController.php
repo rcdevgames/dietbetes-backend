@@ -187,6 +187,7 @@ class JournalController extends Controller {
         $after = Diet::where('calories', '>=', $hasil)->first();
         $result = ($user->userDetail->ideal_weight < 25) ? $after:$before;
         $result['real_calories'] = $hasil;
+        $result['gizi_status'] = $this->gizi_status($user->userDetail->ideal_weight);
 
         // $before->count =  $hasil - $before->calories;
         // $after->count = $after->calories - $hasil;
@@ -209,7 +210,7 @@ class JournalController extends Controller {
         return response()->json([
             'status' => 200,
             'message' => 'success',
-            'data' => ["requirement" => $result, "result" => $this->calculateJournalToday()]
+            'data' => ["requirement" => $result, "result" => $this->calculateJournalToday($result)]
         ]);
     }
     public function calendar(Request $request)
@@ -263,16 +264,40 @@ class JournalController extends Controller {
         }
     }
 
-    protected function calculateJournalToday()
+    protected function calculateJournalToday($current)
     {
         $journal = FoodJournal::whereDate('created_at', Carbon::today())->orderBy('schedule', 'ASC')->get();
         $result = new Diet();
-        foreach ($journal as $key => $value) {
-            $result->calories += $value->cal;
-            $result->protein += $value->protein;
-            $result->fat += $value->fat;
-            $result->carbo += $value->carbo;
+        $result->calories = $current->calories;
+        $result->protein = $current->protein;
+        $result->fat = $current->fat;
+        $result->carbo = $current->carbo;
+        if ($journal && count($journal) > 0) {
+            foreach ($journal as $key => $value) {
+                $result->calories -= $value->cal;
+                $result->protein -= $value->protein;
+                $result->fat -= $value->fat;
+                $result->carbo -= $value->carbo;
+            }
         }
         return $result;
+    }
+
+    protected function gizi_status($IBM)
+    {
+        if ($IBM < 18.5) {
+            return "BB KURANG";
+        } else if ($IBM >= 18.5 && $IBM < 25) {
+            return "BB NORMAL";
+        } else if ($IBM == 25) {
+            return "BB LEBIH";
+        } else if ($IBM > 25 && $IBM < 30) {
+            return "PRE-OBESITAS";
+        } else if ($IBM >= 30 && $IBM < 35) {
+            return "OBESITAS I";
+        } else if ($IBM >= 35 && $IBM < 40) {
+            return "OBESITAS II";
+        }
+        return "OBESITAS III";
     }
 }

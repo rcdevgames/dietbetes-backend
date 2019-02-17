@@ -21,8 +21,11 @@ Route::group(['prefix' => 'v1', 'middleware' => ['requiredParameterJson']], func
 		Route::post('/login-google', 'Api\AuthController@google_login');
 	});
 
-	Route::group(['middleware' => ['jwt.auth']], function () {
-		// Route::group(['prefix' => 'auth'], function () {});
+    Route::group(['prefix' => 'user'], function () {
+        Route::get('/medicines', 'Api\UserController@medicines');
+    });
+    Route::group(['middleware' => ['jwt.auth']], function () {
+        // Route::group(['prefix' => 'auth'], function () {});
         Route::group(['prefix' => 'user'], function () {
             Route::get('/calorie', 'Api\UserController@calorie');
             Route::get('/detail', 'Api\UserController@detail');

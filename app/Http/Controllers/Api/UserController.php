@@ -28,6 +28,8 @@ class UserController extends Controller {
 			], 401);
         }
 
+        // $user = User::where('id', $user->id)->with('userGlucose')->with('userMedicine')->first();
+
         return response()->json([
             'status' => 200,
             'message' => 'success',
@@ -176,14 +178,12 @@ class UserController extends Controller {
         ]);
     }
 
-    public function calorie(Request $request)
+    public function medicines(Request $request)
     {
-        $user = JWTAuth::parseToken()->authenticate();
-		if (!$user) {
-			return response()->json([
-				'status' => 401,
-				'message' => 'Invalid credentials'
-			], 401);
-        }
+        return response()->json([
+            'status' => 200,
+            'message' => 'Success',
+            'data' => Medicines::all()
+        ]);
     }
 }

@@ -24,7 +24,8 @@ class UserGlucose extends Authenticatable
         'hba1c',
         'gdp',
         'gds',
-        'ttgo'
+        'ttgo',
+        'date'
     ];
 
     /**

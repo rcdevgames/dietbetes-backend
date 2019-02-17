@@ -24,7 +24,7 @@ class GlucoseController extends Controller {
 			], 401);
         }
 
-        $glucose = UserGlucose::where('user_id', $user->id)->orderBy('created_at', 'desc')->first();
+        $glucose = UserGlucose::where('user_id', $user->id)->orderBy('date', 'desc')->first();
         if ($glucose->hba1c < 7 && ($glucose->gdp >= 80 && $glucose->gdp <= 125) && ($glucose->gds >= 115 && $glucose->gds <= 157) && ($glucose->ttgo >= 80 && $glucose->ttgo <= 170)) {
             $glucose->{'status'} = 'Normal';
         }else if ($glucose->gds <= 70 && $glucose->ttgo < 140) {
@@ -51,6 +51,7 @@ class GlucoseController extends Controller {
         }
 
         $validator = Validator::make($request->all(), [
+            "date" => 'required',
             "hba1c" => 'required|numeric',
             "gdp" => 'required|numeric',
             "gds" => 'required|numeric',
@@ -65,7 +66,7 @@ class GlucoseController extends Controller {
         }
 
         $glucose = new UserGlucose();
-        $glucose->fill($request->only(["hba1c","gdp","gds","ttgo"]));
+        $glucose->fill($request->only(["date","hba1c","gdp","gds","ttgo"]));
         $glucose->user_id = $user->id;
         $glucose->save();
 
