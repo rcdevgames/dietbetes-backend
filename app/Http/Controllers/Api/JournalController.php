@@ -61,7 +61,8 @@ class JournalController extends Controller {
         }
 
         $validator = Validator::make($request->only('keywords'), [
-            "keywords" => 'required|min:3'
+            "keywords" => 'required|min:3',
+            "page" => 'nullable'
         ]);
         if($validator->fails())
         {
@@ -72,12 +73,31 @@ class JournalController extends Controller {
         }
 
         try {
-            $result = FatSecret::customSearchIngredients($request->keywords);
+            $foods = [];
+            $result = FatSecret::customSearchIngredients($request->keywords, 0, 10);
+            if (isset($result['foods']['food'])) {
+                foreach ($result['foods']['food'] as $key => $value) {
+                    $serving = FatSecret::getIngredient($value['food_id']);
+                    if (isset($serving['food']['servings']['serving'])) {
+                        if (isset($serving['food']['servings']['serving'][0]) && is_array($serving['food']['servings']['serving'][0])) {
+                            foreach ($serving['food']['servings']['serving'] as $k => $v) {
+                                if ($v['serving_description'] == '100 g') {
+                                    $value['food_description'] = "Per " . $v['serving_description'] . " - Kalori: " . $v['calories'] . "kcal | Lemak: " . $v['fat'] . "g | Karbo: " . $v['carbohydrate'] . "g | Protein:" . $v['protein'] ."g";
+                                    // $value['food_description'] = $v;
+                                }
+                            }
+                        }else{
+                            $value['food_description'] = str_replace(['Calories','Fat','Carbs'], ['Kalori','Lemak','Karbo'], $value['food_description']);
+                        }
+                    }
+                    array_push($foods, $value);
+                }
+            }
 
             return response()->json([
                 'status' => 200,
                 'message' => 'success',
-                'data' => $result['foods'],
+                'data' => $foods,
             ]);
         }
         catch (Exception $e) {
