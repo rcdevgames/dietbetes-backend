@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\User;
 use App\FoodJournal;
 use App\Diet;
+use App\UserDietRequired;
 use App\Helpers\FormatConverter;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -94,10 +95,12 @@ class JournalController extends Controller {
                 }
             }
 
+            $result['foods']['food'] = $foods;
+
             return response()->json([
                 'status' => 200,
                 'message' => 'success',
-                'data' => $foods,
+                'data' => $result['foods'],
             ]);
         }
         catch (Exception $e) {
@@ -159,13 +162,20 @@ class JournalController extends Controller {
             $input = array("user_id" => $user->id, "schedule" => $request->schedule);
 
             $food = FatSecret::getIngredient($request->food_id);
-            foreach ($food['food']['servings']['serving'] as $key => $value) {
-                if ($value['serving_description'] == '100 g') {
-                    $input['cal'] = $value['calories'];
-                    $input['carbo'] = $value['carbohydrate'];
-                    $input['protein'] = $value['protein'];
-                    $input['fat'] = $value['fat'];
+            if (isset($food['food']['servings']['serving'][0]) && is_array($food['food']['servings']['serving'][0])) {
+                foreach ($food['food']['servings']['serving'] as $key => $value) {
+                    if ($value['serving_description'] == '100 g') {
+                        $input['cal'] = $value['calories'];
+                        $input['carbo'] = $value['carbohydrate'];
+                        $input['protein'] = $value['protein'];
+                        $input['fat'] = $value['fat'];
+                    }
                 }
+            } else {
+                $input['cal'] = $food['food']['servings']['serving']['calories'];
+                $input['carbo'] = $food['food']['servings']['serving']['carbohydrate'];
+                $input['protein'] = $food['food']['servings']['serving']['protein'];
+                $input['fat'] = $food['food']['servings']['serving']['fat'];
             }
 
             $foodJournal = FoodJournal::create($input);
@@ -205,27 +215,37 @@ class JournalController extends Controller {
 
         $before = Diet::where('calories', '<=', $hasil)->orderBy('id', 'DESC')->first();
         $after = Diet::where('calories', '>=', $hasil)->first();
-        $result = ($user->userDetail->ideal_weight < 25) ? $after:$before;
-        $result['real_calories'] = $hasil;
-        $result['gizi_status'] = $this->gizi_status($user->userDetail->ideal_weight);
+        // $result = ($user->userDetail->ideal_weight < 25) ? $after:$before;
 
-        // $before->count =  $hasil - $before->calories;
-        // $after->count = $after->calories - $hasil;
-        // $minResult = min([$before->count, $after->count]);
+        $before->count =  $hasil - $before->calories;
+        $after->count = $after->calories - $hasil;
+        $minResult = min([$before->count, $after->count]);
 
-        // if ($minResult < 100) {
-        //     $result = ($before->count == $minResult) ? $before:$after;
-        // }else{
-        //     $result = [
-        //         "type" => "custom",
-        //         "calories" => $hasil,
-        //         "protein" => 0.15 * $hasil,
-        //         "fat" => 0.2 * $hasil,
-        //         "carbo" => 0.64 * $hasil
-        //     ];
-        // }
+        if ($minResult < 100) {
+            $result = ($before->count == $minResult) ? $before:$after;
+            // $result = ($user->userDetail->ideal_weight < 25) ? $after:$before;
+        }else{
+            $result = [
+                "type" => "custom",
+                "calories" => $hasil,
+                "protein" => 0.15 * $hasil,
+                "fat" => 0.2 * $hasil,
+                "carbo" => 0.64 * $hasil
+            ];
+        }
 
         // $result = ($before->count == $minResult) ? $before:$after;
+        if (!$required = UserDietRequired::whereDate('created_at', Carbon::now())->first()) {
+            UserDietRequired::create([
+                "user_id" => $user->id,
+                "calories" => $result['calories'],
+                "protein" => $result['protein'],
+                "fat" => $result['fat'],
+                "carbo" => $result['carbo']
+            ]);
+        }
+        $result['real_calories'] = $hasil;
+        $result['gizi_status'] = $this->gizi_status($user->userDetail->ideal_weight);
 
         return response()->json([
             'status' => 200,
@@ -243,11 +263,34 @@ class JournalController extends Controller {
 			], 401);
         }
 
-        $journal = FoodJournal::whereMonth('created_at', date('m'))->get();
+        $required = UserDietRequired::whereMonth('created_at', date('m'))->where('user_id', $user->id)->orderBy('created_at', 'DESC')->first();
+        $journal = FoodJournal::whereMonth('created_at', date('m'))->where('user_id', $user->id)->orderBy('created_at', 'ASC')->get();
+
+        $result = [];
+        foreach ($journal as $key => $value) {
+            if (
+                ($value->calories >= $required->calories && $value->calories <= ($required->calories + 30)) && 
+                ($value->carbo >= $required->carbo && $value->carbo <= ($required->carbo + 30)) && 
+                ($value->protein >= $required->protein && $value->protein <= ($required->protein + 30)) && 
+                ($value->fat >= $required->fat && $value->fat <= ($required->fat + 30))
+            ){
+                array_push($result, [
+                    "day" => date('d', strtotime($value->created_at)),
+                    "sucess" => true
+                ]);
+            }else{
+                array_push($result, [
+                    "day" => date('d', strtotime($value->created_at)),
+                    "sucess" => false
+                ]);
+            }     
+        }
+
+
         return response()->json([
             'status' => 200,
             'message' => 'success',
-            'data' => $journal,
+            'data' => $result,
         ]);
     }
 
@@ -288,10 +331,10 @@ class JournalController extends Controller {
     {
         $journal = FoodJournal::whereDate('created_at', Carbon::today())->orderBy('schedule', 'ASC')->get();
         $result = new Diet();
-        $result->calories = $current->calories;
-        $result->protein = $current->protein;
-        $result->fat = $current->fat;
-        $result->carbo = $current->carbo;
+        $result->calories = $current['calories'];
+        $result->protein = $current['protein'];
+        $result->fat = $current['fat'];
+        $result->carbo = $current['carbo'];
         if ($journal && count($journal) > 0) {
             foreach ($journal as $key => $value) {
                 $result->calories -= $value->cal;
