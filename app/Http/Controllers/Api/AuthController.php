@@ -65,8 +65,11 @@ class AuthController extends Controller
                 ], 400);
             }
 
+            $user->onesignal_token = $request->onesignal_token;
             $user->token = JWTAuth::fromUser($user);
             $user->last_login = Carbon::now()->toDateTimeString();
+
+            $user->save();
 
             return response()->json([
 				'status' => 200,

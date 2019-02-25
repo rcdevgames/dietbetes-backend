@@ -26,6 +26,11 @@ Route::group(['prefix' => 'v1', 'middleware' => ['requiredParameterJson']], func
     });
     Route::group(['middleware' => ['jwt.auth']], function () {
         // Route::group(['prefix' => 'auth'], function () {});
+        Route::group(['prefix' => 'alarm'], function () {
+            Route::get('/list', 'Api\AlarmController@index');
+            Route::post('/add', 'Api\AlarmController@insert');
+            Route::delete('/remove/{id}', 'Api\AlarmController@delete');
+        });
         Route::group(['prefix' => 'user'], function () {
             Route::get('/calorie', 'Api\UserController@calorie');
             Route::get('/detail', 'Api\UserController@detail');
