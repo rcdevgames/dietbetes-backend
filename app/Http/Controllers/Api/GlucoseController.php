@@ -31,6 +31,10 @@ class GlucoseController extends Controller {
             $glucose->{'status'} = 'Hipoglikemia';
         }else if ($glucose->hba1c >= 7 && $glucose->gdp > 125 && $glucose->gds > 125 && $glucose->ttgo >= 200) {
             $glucose->{'status'} = 'Hiperglikemia';
+        } else if ($glucose->hba1c >= 7 || $glucose->gdp > 125 || $glucose->gds > 125 || $glucose->ttgo >= 200) {
+            $glucose->{'status'} = 'Hiperglikemia';
+        }else {
+            $glucose->{'status'} = 'Unkown';
         }
 
         return response()->json([
