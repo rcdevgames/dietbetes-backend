@@ -23,7 +23,8 @@ class Alarm extends Model
         'user_id',
         'title',
         'note',
-        'remind_at'
+        'remind_at',
+        'remind_on'
     ];
 
     /**

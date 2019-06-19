@@ -50,6 +50,7 @@ class AlarmController extends Controller
             "title" => "required",
             "note" => "required",
             "remind_at" => "required|min:5|max:5",
+            "remind_on" => "required",
             "status" => "required|in:1,0"
         ]);
 
@@ -73,7 +74,8 @@ class AlarmController extends Controller
 
         	$data->title = $request->title;
         	$data->note = $request->note;
-        	$data->remind_at = $request->remind_at;  
+            $data->remind_at = $request->remind_at;
+        	$data->remind_on = $request->remind_on;
         	$data->status = $reques->status;
         	$data->save();     	
         }else{

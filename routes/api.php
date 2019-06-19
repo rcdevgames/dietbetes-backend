@@ -18,7 +18,7 @@ Route::group(['prefix' => 'v1', 'middleware' => ['requiredParameterJson']], func
 		Route::post('/login', 'Api\AuthController@login');
 		Route::post('/register', 'Api\AuthController@register');
 		Route::post('/forgot-password', 'Api\AuthController@forgotPassword');
-		Route::post('/login-google', 'Api\AuthController@google_login');
+		Route::post('/login-google', 'Api\AuthController@loginGoogle');
 	});
 
     Route::group(['prefix' => 'user'], function () {
@@ -44,9 +44,10 @@ Route::group(['prefix' => 'v1', 'middleware' => ['requiredParameterJson']], func
             Route::get('/history', 'Api\GlucoseController@history');
         });
         Route::group(['prefix' => 'food'], function () {
-            Route::get('/category', 'Api\FoodController@category');
-            Route::get('/receipt', 'Api\FoodController@receipt');
-            Route::get('/receipt-detail', 'Api\FoodController@detailReceipt');
+            Route::get('/receipt', 'Api\FoodController@index');
+            Route::post('/receipt/add', 'Api\FoodController@insert');
+            // Route::get('/category', 'Api\FoodController@category');
+            // Route::get('/receipt-detail', 'Api\FoodController@detailReceipt');
         });
         Route::group(['prefix' => 'journal'], function () {
             Route::get('/list', 'Api\JournalController@index');

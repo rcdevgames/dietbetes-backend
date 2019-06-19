@@ -50,19 +50,26 @@ class AlarmReminder extends Command
         Log::info(self::PREFIX . 'Reminder' . self::SUFIX_START);
         $alarms = Alarm::where('status',1)->get();
         $current = Carbon::now()->format("H:i");
+        $currentDay = date('N', strtotime(Carbon::now()->format('l')));
 
         foreach ($alarms as $key => $value) {
-            if ($value->remind_at == $current) {
+            Log::info("Tanggal ". ($value->remind_on == 0 || strpos($value->remind_on, $currentDay) != false));
+            Log::info("Jam ". ($value->remind_at == $current));
+            if (($value->remind_on == 0 || strpos($value->remind_on, $currentDay) != false) && $value->remind_at == $current) {
                 $user = User::where('id', $value->user_id)->where('status', 1)->first();
                 if($user && $user->onesignal_token != NULL) {
-                    $client = new Client(['headers' => ['Content-Type' => 'application/json', 'Authorization' => 'Basic ZTUzNTk1OGItNjg2My00YjhhLWE3YzEtMDQyYjdmODRlY2Ez']]);
+                    $client = new Client(['headers' => ['Content-Type' => 'application/json', 'Authorization' => 'key=AAAAVymkZMo:APA91bECDhCjY4kSRZMAoqsne_aQLxK5958DWpL4XkaauCaygHcx-XoBBorm46HFE9DRkqN5ItX2QroLIbKlNlh3-H5gb8TNkUbGcRZ6TI0Xvem2S7Pq9MGEmIWOB_3Jz8wER4qFCiFP']]);
                     try {
-                        $result = $client->post("https://onesignal.com/api/v1/notifications", ['json' => [
+                        $result = $client->post("https://fcm.googleapis.com/fcm/send", ['json' => [
                             "app_id" => "1005a0a0-2d0e-4307-bc0e-e1c0b00570f1",
-                            "include_player_ids" => [$user->onesignal_token],
-                            "data" => ["newTask" => false],
-                            "headings" => ["en" => $value->title],
-                            "contents" => ["en" => $value->note]
+                            "registration_ids" => [$user->onesignal_token],
+                            "priority" => "high",
+                            "notification" => [
+                                "title" => $value->title,
+                                "body" => $value->note,
+                                "sound" => "default",
+                                "icon" => "icon_launcher"
+                            ]
                         ]]);
                         $res = $result->getBody()->getContents();
                         NotificationLog::create(['message' => $res]);
@@ -85,7 +92,7 @@ class AlarmReminder extends Command
                         Log::info($res);
                     }
                 }
-            }            
+            }
         }
         Log::info(self::PREFIX . 'Reminder' . self::SUFIX_END);
     }

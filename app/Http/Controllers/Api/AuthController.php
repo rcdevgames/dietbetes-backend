@@ -87,31 +87,40 @@ class AuthController extends Controller
     }
 
     public function loginGoogle(Request $request) {
-        $validateData = Validator::make($request->only(['token']), ["token" => 'required']);
+        $validateData = Validator::make($request->only(['useremail', "google_id", "onesignal_token"]), [
+            "useremail" => 'required|email', 
+            "google_id" => 'required',
+            "onesignal_token" => 'nullable'
+        ]);
         if($validateData->fails())
         {
             return response()->json([
-            'status' => 400,
-            'validators' => FormatConverter::parseValidatorErrors($validator),
+                'status' => 400,
+                'validators' => FormatConverter::parseValidatorErrors($validateData),
             ], 400);
         }
 
-        $client = new Client(['headers' => ['Authorization' => 'Bearer '.$request->token]]);
         try {
-            $result = $client->get("https://www.googleapis.com/oauth2/v1/userinfo?alt=json");
-            $userData = json_decode($result->getBody(), true);
-
-            $user = User::where('email', '=', $userData['email'])->first();
-            if (!$user){
+            $user = User::where('email', $request->useremail)->first();
+            if(!$user) {
                 return response()->json([
                     'status' => 404,
-                    'message' => 'User not registered',
+                    'message' => 'User not registered'
                 ], 404);
             }
 
-            $user->google_token = $request->token;
+            if ($user->status != User::USER_ACTIVE) {
+                return response()->json([
+                    'status' => 400,
+                    'message' => 'User not active'
+                ], 400);
+            }
+
+            $user->google_token = $request->google_id;
+            $user->onesignal_token = $request->onesignal_token;
             $user->token = JWTAuth::fromUser($user);
             $user->last_login = Carbon::now()->toDateTimeString();
+
             $user->save();
 
             return response()->json([
@@ -120,14 +129,12 @@ class AuthController extends Controller
                 'data' => $user
             ], 200);
 
-        } catch (GuzzleException $e) {
-            if ($e->hasResponse()) {
-                $exception = (string) $e->getResponse()->getBody();
-                $exception = json_decode($exception);
-                return response()->json($exception, $e->getCode());
-            } else {
-                return response()->json($e->getMessage(), 503);
-            }
+
+        } catch (Exception $e) {
+            return response()->json([
+                'status' => 400,
+                'message' => 'Could Not Login ' . $e->getMessage()
+            ], 400);
         }
     }
 

@@ -125,8 +125,8 @@ class UserController extends Controller {
 
         $model = User::findOrFail($user->id);
 
-        $data = \App\Helpers\ImageHelper::getImageBase64Information($request->avatar_file);
-        $img = \Eventviva\ImageResize::createFromString(base64_decode($data['data']));
+        // $data = \App\Helpers\ImageHelper::getImageBase64Information($request->avatar_file);
+        $img = \Eventviva\ImageResize::createFromString($request->avatar_file);
         $imageFilename = $model->generateFilename(str_random(8), $data['extension']);
         $img->save($model->getPath() . $imageFilename);
         $model->avatar_url = $imageFilename;
