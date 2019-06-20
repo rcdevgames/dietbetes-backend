@@ -203,13 +203,14 @@ class JournalController extends Controller {
 			], 401);
         }
 
-
         $energiBasal = ($user->userDetail->gender == 0 ? 20:30) * $user->userDetail->ideal_weight;
         $faktorAktifitas = ($energiBasal * 0.3) + $energiBasal;
         $koreksiStatusGizi = 0.2 * $energiBasal;
         $koreksiIBM = $this->koreksiBeratBadan($user->userDetail->ideal_weight, $faktorAktifitas, $koreksiStatusGizi);
         $koreksiUmur = $this->koreksiUmur($user->userDetail->dob, $energiBasal);
         $hasil = $koreksiIBM + $koreksiUmur;
+        $hasil += $hasil * (($user->physical_activity + 10) / 100);
+        // return $hasil;
 
         // $hasil = 1650;
 
@@ -246,6 +247,7 @@ class JournalController extends Controller {
         }
         $result['real_calories'] = $hasil;
         $result['gizi_status'] = $this->gizi_status($user->userDetail->ideal_weight);
+        // $result['gizi_status'] = $user->userDetail->ideal_weight;
 
         return response()->json([
             'status' => 200,
