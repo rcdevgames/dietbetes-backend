@@ -44,7 +44,7 @@ Route::group(['prefix' => 'v1', 'middleware' => ['requiredParameterJson']], func
             Route::get('/history', 'Api\GlucoseController@history');
         });
         Route::group(['prefix' => 'food'], function () {
-            Route::get('/receipt', 'Api\FoodController@index');
+            Route::get('/receipt/{type}', 'Api\FoodController@index');
             Route::post('/receipt/add', 'Api\FoodController@insert');
             // Route::get('/category', 'Api\FoodController@category');
             // Route::get('/receipt-detail', 'Api\FoodController@detailReceipt');

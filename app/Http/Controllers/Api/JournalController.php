@@ -246,8 +246,8 @@ class JournalController extends Controller {
             ]);
         }
         $result['real_calories'] = $hasil;
-        $result['gizi_status'] = $this->gizi_status($user->userDetail->ideal_weight);
-        // $result['gizi_status'] = $user->userDetail->ideal_weight;
+        $result['gizi_status'] = $this->gizi_status($user->userDetail->mass_index);
+        // $result['gizi_status'] = $user->userDetail->mass_index;
 
         return response()->json([
             'status' => 200,

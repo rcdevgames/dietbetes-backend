@@ -17,7 +17,7 @@ use DateTime;
 
 class FoodController extends Controller {
 
-    public function index(Request $request)
+    public function index($type, Request $request)
     {
         $user = JWTAuth::parseToken()->authenticate();
 		if (!$user) {
@@ -44,7 +44,7 @@ class FoodController extends Controller {
 
         $result = ($before->count == $minResult) ? $before:$after;
 
-        $receipt = FoodReceipt::where('status', FoodReceipt::ACTIVE)->where('type', $result->calories)->orderBy('title', 'ASC')->get();
+        $receipt = FoodReceipt::where('status', FoodReceipt::ACTIVE)->where('type', $result->calories)->where('time', $type)->orderBy('title', 'ASC')->get();
 
         return response()->json([
             'status' => 200,
