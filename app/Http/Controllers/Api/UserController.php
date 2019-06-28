@@ -125,19 +125,38 @@ class UserController extends Controller {
 
         $model = User::findOrFail($user->id);
 
-        // $data = \App\Helpers\ImageHelper::getImageBase64Information($request->avatar_file);
-        $img = \Eventviva\ImageResize::createFromString($request->avatar_file);
-        $imageFilename = $model->generateFilename(str_random(8), $data['extension']);
-        $img->save($model->getPath() . $imageFilename);
-        $model->avatar_url = $imageFilename;
+        // try {
+            $imageBase64 = $request->avatar_file;
+            if (!ImageHelper::isImageBase64($imageBase64)) {
+                return response()->json([
+                    'status' => 400,
+                    'message' => 'Some Parameters is invalid',
+                    'validators' => [
+                        'avatar_file' => 'format is invalid',
+                    ],
+                ], 400);
+            }
+            $data = ImageHelper::getImageBase64Information($imageBase64);
+            $img = \Eventviva\ImageResize::createFromString(base64_decode($data['data']));
 
-        $model->save();
+            $imageFilename = $model->generateFilename(str_random(8), $data['extension']);
+            $img->save($model->getPath() . $imageFilename);
+            $model->avatar_url = $imageFilename;
 
-        return response()->json([
-            'status' => 200,
-            'message' => 'Upload avatar success',
-            'data' => $model->getFileUrl(),
-        ]);
+            $model->save();
+
+            return response()->json([
+                'status' => 200,
+                'message' => 'Upload avatar success',
+                'data' => $model->getFileUrl(),
+            ]);
+        // } catch (Exception $e) {
+        //     return response()->json([
+        //         'status' => 400,
+        //         'message' => "Invalid Image!",
+        //     ], 400);
+        // }
+
     }
 
     public function updatePassword(Request $request)

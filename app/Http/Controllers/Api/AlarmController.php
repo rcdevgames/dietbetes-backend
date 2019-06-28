@@ -76,7 +76,7 @@ class AlarmController extends Controller
         	$data->note = $request->note;
             $data->remind_at = $request->remind_at;
         	$data->remind_on = $request->remind_on;
-        	$data->status = $reques->status;
+        	$data->status = $request->status;
         	$data->save();     	
         }else{
         	$input = $request->all();
